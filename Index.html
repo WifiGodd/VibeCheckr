@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCheckr - Ultimate Mood Detector</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary-glow: #00ff88;
+            --secondary-glow: #ff0080;
+            --accent-glow: #0088ff;
+            --bg-dark: #0a0a0f;
+            --bg-darker: #050508;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --card-bg: rgba(20, 20, 30, 0.8);
+            --glitch-color-1: #ff0040;
+            --glitch-color-2: #00ff80;
+            --glitch-color-3: #4080ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Animated Background */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary-glow);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+        
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            animation: glitch-1 2s infinite;
+            color: var(--glitch-color-1);
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitch-2 2s infinite;
+            color: var(--glitch-color-2);
+            z-index: -2;
+        }
+        
+        @keyframes glitch-1 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-2px, 2px); }
+            80% { transform: translate(-2px, -2px); }
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(255, 0, 128, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary-glow);
+        }
+        
+        .title {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px var(--primary-glow);
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from { text-shadow: 0 0 20px var(--primary-glow); }
+            to { text-shadow: 0 0 30px var(--primary-glow), 0 0 40px var(--primary-glow); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+        
+        /* Controls */
+        .controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .control-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-glow);
+            color: var(--primary-glow);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+        }
+        
+        .control-btn:hover {
+            background: var(--primary-glow);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        
+        /* Quiz Container */
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+        }
+        
+        /* Vibe Meters */
+        .vibe-meters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 15px;
+            border: 2px solid var(--primary-glow);
+            backdrop-filter: blur(10px);
+        }
+        
+        .vibe-meter {
+            text-align: center;
+        }
+        
+        .vibe-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .meter-container {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            width: 0%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .meter-value {
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            font-weight: 600;
+            color: var(--primary-glow);
+        }
+        
+        /* Question Card */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px solid var(--accent-glow);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            transform: translateX(0);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .question-card.swipe-left {
+            transform: translateX(-100vw) rotate(-30deg);
+            opacity: 0;
+        }
+        
+        .question-card.swipe-right {
+            transform: translateX(100vw) rotate(30deg);
+            opacity: 0;
+        }
+        
+        .question-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            animation: card-shimmer 3s infinite;
+        }
+        
+        @keyframes card-shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .question-number {
+            font-size: 1rem;
+            color: var(--secondary-glow);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 2rem;
+            animation: text-glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes text-glow {
+            0%, 100% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            50% { text-shadow: 0 0 15px rgba(0, 255, 136, 0.8); }
+        }
+        
+        /* Answer Buttons */
+        .answers {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .answer-btn {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(255, 0, 128, 0.1));
+            border: 2px solid var(--primary-glow);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+        
+        .answer-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .answer-btn:hover::before {
+            left: 100%;
+        }
+        
+        .answer-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(255, 0, 128, 0.3));
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .answer-btn:active {
+            transform: translateX(5px) scale(0.98);
+        }
+        
+        /* Results */
+        .results {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 2px solid var(--secondary-glow);
+            backdrop-filter: blur(10px);
+            animation: results-reveal 1s ease-out;
+        }
+        
+        @keyframes results-reveal {
+            from { opacity: 0; transform: scale(0.8) rotateX(90deg); }
+            to { opacity: 1; transform: scale(1) rotateX(0deg); }
+        }
+        
+        .results-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            text-shadow: 0 0 20px var(--secondary-glow);
+        }
+        
+        .results-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+        
+        .results-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            animation: typewriter 2s steps(40, end);
+        }
+        
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        /* Easter Eggs */
+        .easter-egg {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--primary-glow);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s ease;
+        }
+        
+        .easter-egg.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title { font-size: 2rem; }
+            .question-text { font-size: 1.4rem; }
+            .vibe-meters { grid-template-columns: 1fr; }
+            .controls { position: static; justify-content: center; padding: 1rem; }
+        }
+        
+        /* Button Animations */
+        .btn-bounce {
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-glow);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Meme Generator */
+        .meme-generator {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 0, 128, 0.1);
+            border-radius: 15px;
+            border: 2px solid var(--secondary-glow);
+            text-align: center;
+        }
+        
+        .meme-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--secondary-glow);
+            min-height: 2rem;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow));
+            border: none;
+            color: var(--bg-dark);
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
+        }
+        
+        /* Sound Toggle */
+        .sound-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--primary-glow);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sound-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-particles" id="particles"></div>
+    
+    <div class="controls">
+        <button class="control-btn" id="soundToggle">🔊 SOUND</button>
+        <button class="control-btn" id="darkModeToggle">🌙 DARK</button>
+    </div>
+    
+    <div class="header">
+        <h1 class="title glitch" data-text="VIBECHECKR">VIBECHECKR</h1>
+        <p class="subtitle">Ultimate AI-Powered Mood Detector</p>
+    </div>
+    
+    <div class="quiz-container">
+        <div class="vibe-meters">
+            <div class="vibe-meter">
+                <div class="vibe-label">WOKENESS</div>
+                <div class="meter-container">
+                    <div class="meter-fill" id="wokeness"></div>
+                </div>
+                <div class="meter-value" id="wokeness-value">0%</div>
+            </div>
+            <div class="vibe-meter">
+                <div class="vibe-label">ENERGY</div>
+                <div class="meter-container">
+                    <div class="meter-fill" id="energy"></div>
+                </div>
+                <div class="meter-value" id="energy-value">0%</div>
+            </div>
+            <div class="vibe-meter">
+                <div class="vibe-label">CLOUT</div>
+                <div class="meter-container">
+                    <div class="meter-fill" id="clout"></div>
+                </div>
+                <div class="meter-value" id="clout-value">0%</div>
+            </div>
+        </div>
+        
+        <div class="question-card" id="questionCard">
+            <div class="question-number" id="questionNumber">Question 1 of 10</div>
+            <div class="question-text" id="questionText">Loading your vibe check...</div>
+            <div class="answers" id="answers"></div>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="results-title" id="resultsTitle"></div>
+            <div class="results-subtitle" id="resultsSubtitle"></div>
+            <div class="results-description" id="resultsDescription"></div>
+            <div class="meme-generator">
+                <div class="meme-text" id="memeText">Click to generate your vibe meme!</div>
+                <button class="control-btn" id="memeBtn">GENERATE MEME</button>
+            </div>
+            <button class="restart-btn" id="restartBtn">RESTART VIBE CHECK</button>
+        </div>
+    </div>
+    
+    <div class="easter-egg" id="easterEgg"></div>
+    <div class="sound-indicator" id="soundIndicator">🔊 SOUND ON</div>
+    
+    <script>
+        // Game State
+        let currentQuestion = 0;
+        let vibes = { wokeness: 0, energy: 0, clout: 0 };
+        let soundEnabled = false;
+        let darkMode = true;
+        let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+        let konamiInput = [];
+        
+        // Questions Database
+        const questions = [
+            {
+                text: "What's your ideal Friday night vibe?",
+                answers: [
+                    { text: "Netflix and chill with my houseplants", effects: { wokeness: 2, energy: 1, clout: 1 } },
+                    { text: "Club hopping until 3 AM", effects: { wokeness: 1, energy: 4, clout: 3 } },
+                    { text: "Protesting capitalism while sipping oat milk lattes", effects: { wokeness: 4, energy: 2, clout: 2 } },
+                    { text: "Live streaming my skincare routine", effects: { wokeness: 1, energy: 2, clout: 4 } }
+                ]
+            },
+            {
+                text: "Your phone dies. What's your first move?",
+                answers: [
+                    { text: "Panic and ask strangers for chargers", effects: { wokeness: 1, energy: 1, clout: 2 } },
+                    { text: "Enjoy the digital detox moment", effects: { wokeness: 3, energy: 2, clout: 1 } },
+                    { text: "Use it as content for my 'authentic' lifestyle", effects: { wokeness: 2, energy: 2, clout: 4 } },
+                    { text: "Finally talk to actual humans", effects: { wokeness: 2, energy: 3, clout: 2 } }
+                ]
+            },
+            {
+                text: "What's your coffee order energy?",
+                answers: [
+                    { text: "Oat milk cortado with extra activism", effects: { wokeness: 4, energy: 2, clout: 2 } },
+                    { text: "Triple shot espresso, straight up", effects: { wokeness: 1, energy: 4, clout: 3 } },
+                    { text: "Whatever's trending on TikTok", effects: { wokeness: 1, energy: 2, clout: 4 } },
+                    { text: "Black coffee because I'm not like other millennials", effects: { wokeness: 2, energy: 3, clout: 1 } }
+                ]
+            },
+            {
+                text: "Your dream job is...",
+                answers: [
+                    { text: "Influencer teaching mindfulness to plants", effects: { wokeness: 3, energy: 2, clout: 4 } },
+                    { text: "CEO of a company that only exists in the metaverse", effects: { wokeness: 2, energy: 3, clout: 4 } },
+                    { text: "Professional overthinker and social justice warrior", effects: { wokeness: 4, energy: 2, clout: 2 } },
+                    { text: "Gym influencer who only posts at 5 AM", effects: { wokeness: 1, energy: 4, clout: 3 } }
+                ]
+            },
+            {
+                text: "How do you handle drama?",
+                answers: [
+                    { text: "Screenshot everything for the group chat", effects: { wokeness: 1, energy: 3, clout: 3 } },
+                    { text: "Write a 47-slide Instagram story about it", effects: { wokeness: 2, energy: 2, clout: 4 } },
+                    { text: "Sage the negative energy away", effects: { wokeness: 3, energy: 1, clout: 2 } },
+                    { text: "Channel it into my workout playlist", effects: { wokeness: 1, energy: 4, clout: 2 } }
+                ]
+            },
+            {
+                text: "Your aesthetic is...",
+                answers: [
+                    { text: "Cottagecore but make it sustainable", effects: { wokeness: 4, energy: 1, clout: 2 } },
+                    { text: "Dark academia with anxiety", effects: { wokeness: 3, energy: 2, clout: 3 } },
+                    { text: "Y2K revival with Bitcoin investments", effects: { wokeness: 1, energy: 3, clout: 4 } },
+                    { text: "Gym rat with a philosophy degree", effects: { wokeness: 2, energy: 4, clout: 3 } }
+                ]
+            },
+            {
+                text: "What's your biggest flex?",
+                answers: [
+                    { text: "My therapist says I'm making progress", effects: { wokeness: 3, energy: 1, clout: 2 } },
+                    { text: "I wake up at 4 AM by choice", effects: { wokeness: 1, energy: 4, clout: 3 } },
+                    { text: "My TikTok has 50K followers", effects: { wokeness: 1, energy: 2, clout: 4 } },
+                    { text: "I actually read the terms and conditions", effects: { wokeness: 4, energy: 2, clout: 1 } }
+                ]
+            },
+            {
+                text: "Your relationship status is...",
+                answers: [
+                    { text: "In a committed relationship with my career", effects: { wokeness: 2, energy: 3, clout: 4 } },
+                    { text: "Polyamorous with my houseplants", effects: { wokeness: 4, energy: 1, clout: 2 } },
+                    { text: "Single and optimizing my dating app algorithms", effects: { wokeness: 1, energy: 3, clout: 3 } },
+                    { text: "It's complicated with my gym membership", effects: { wokeness: 1, energy: 4, clout: 2 } }
+                ]
+            },
+            {
+                text: "How do you consume news?",
+                answers: [
+                    { text: "TikTok videos with dramatic music", effects: { wokeness: 1, energy: 2, clout: 4 } },
+                    { text: "Long-form journalism while drinking tea", effects: { wokeness: 4, energy: 1, clout: 2 } },
+                    { text: "Memes that accidentally teach me things", effects: { wokeness: 2, energy: 2, clout: 3 } },
+                    { text: "Podcast while doing burpees", effects: { wokeness: 2, energy: 4, clout: 2 } }
+                ]
+            },
+            {
+                text: "Your final boss energy is...",
+                answers: [
+                    { text: "Zen master who can cancel you with kindness", effects: { wokeness: 4, energy: 2, clout: 3 } },
+                    { text: "5 AM workout warrior with a side hustle", effects: { wokeness: 1, energy: 4, clout: 3 } },
+                    { text: "Viral sensation who accidentally became famous", effects: { wokeness: 1, energy: 3, clout: 4 } },
+                    { text: "Overthinker who somehow has it all figured out", effects: { wokeness: 3, energy: 2, clout: 3 } }
+                ]
+            }
+        ];
+        
+        // Vibe Results
+        const vibeResults = {
+            'high-woke': {
+                title: 'THE ENLIGHTENED OVERTHINKER',
+                subtitle: '🧠 Big Brain Energy',
+                description: 'You\'ve transcended basic existence and live in a constant state of philosophical awakening. Your third eye is so open it has its own Instagram account. You probably have strong opinions about oat milk and the patriarchy.'
+            },
+            'high-energy': {
+                title: 'THE CAFFEINATED CHAOS',
+                subtitle: '⚡ Pure Electric Vibes',
+                description: 'You run on pure adrenaline and the tears of your enemies. Your energy could power a small city. You probably work out at 5 AM and have seventeen different side hustles.'
+            },
+            'high-clout': {
+                title: 'THE VIRAL SENSATION',
+                subtitle: '📱 Main Character Energy',
+                description: 'You don\'t just have main character energy - you ARE the main character. Your life is basically a continuous Instagram story. You probably have a Ring Light permanently attached to your ceiling.'
+            },
+            'balanced-chaos': {
+                title: 'THE BEAUTIFUL DISASTER',
+                subtitle: '🎭 Chaotic Neutral',
+                description: 'You\'re a perfect storm of contradictions. You meditate while drinking energy drinks and post motivational quotes while having an existential crisis. Somehow, it all works.'
+            },
+            'low-everything': {
+                title: 'THE CHILL PHILOSOPHER',
+                subtitle: '🌿 Zen Master Vibes',
+                description: 'You\'ve achieved peak unbothered energy. While everyone else is spiraling, you\'re just vibing. You probably have a houseplant collection and strong opinions about tea.'
+            },
+            'mid-everything': {
+                title: 'THE RELATABLE HUMAN',
+                subtitle: '👤 Peak Millennial/Gen Z',
+                description: 'You\'re exactly what happens when someone grows up on the internet but still has functioning social skills. You\'re anxious but make it aesthetic. You probably have a very specific Spotify playlist for every mood.'
+            }
+        };
+        
+        // Meme phrases
+        const memePhrasesGenZ = [
+            "That's not very demure of you",
+            "No cap, this slaps different",
+            "I'm literally deceased 💀",
+            "This is sending me to another dimension",
+            "Touch grass? I AM the grass",
+            "That's sus but make it aesthetic",
+            "I'm just a girl with anxiety and WiFi",
+            "Mental health? Never heard of her",
+            "I'm baby but also ancient",
+            "Bestie, that's unhinged energy",
+            "I'm literally just vibing and thriving",
+            "This hits different at 3 AM",
+            "That's very mindful, very demure",
+            "I'm not like other millennials",
+            "Therapy could never fix this",
+            "I'm a walking red flag but cute",
+            "That's big brain energy right there",
+            "I'm the main character of my own trauma",
+            "This is my villain origin story"
+        ];
+        
+        function startGame() {
+            currentQuestion = 0;
+            vibes = { wokeness: 0, energy: 0, clout: 0 };
+            soundEnabled = false;
+            darkMode = true;
+            konamiInput = [];
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('questionCard').style.display = 'block';
+            document.getElementById('questionText').innerText = 'Loading your vibe check...';
+            document.getElementById('answers').innerHTML = '';
+            document.getElementById('wokeness').style.width = '0%';
+            document.getElementById('energy').style.width = '0%';
+            document.getElementById('clout').style.width = '0%';
+            document.getElementById('wokeness-value').innerText = '0%';
+            document.getElementById('energy-value').innerText = '0%';
+            document.getElementById('clout-value').innerText = '0%';
+            setTimeout(() => {
+                showQuestion(0);
+            }, 500);
+        }
+        
+        function showQuestion(index) {
+            const question = questions[index];
+            document.getElementById('questionNumber').innerText = `Question ${index + 1} of ${questions.length}`;
+            document.getElementById('questionText').innerText = question.text;
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+            question.answers.forEach((answer, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.innerText = answer.text;
+                btn.onclick = () => selectAnswer(i);
+                answersContainer.appendChild(btn);
+            });
+        }
+        
+        function selectAnswer(answerIndex) {
+            const question = questions[currentQuestion];
+            const effects = question.answers[answerIndex].effects;
+            vibes.wokeness += effects.wokeness;
+            vibes.energy += effects.energy;
+            vibes.clout += effects.clout;
+            document.getElementById('wokeness').style.width = `${vibes.wokeness}%`;
+            document.getElementById('energy').style.width = `${vibes.energy}%`;
+            document.getElementById('clout').style.width = `${vibes.clout}%`;
+            document.getElementById('wokeness-value').innerText = `${vibes.wokeness}%`;
+            document.getElementById('energy-value').innerText = `${vibes.energy}%`;
+            document.getElementById('clout-value').innerText = `${vibes.clout}%`;
+            
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                setTimeout(() => {
+                    showQuestion(currentQuestion);
+                }, 1000);
+            } else {
+                setTimeout(showResults, 1000);
+            }
+        }
+        
+        function showResults() {
+            document.getElementById('questionCard').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            let resultKey = 'low-everything';
+            if (vibes.wokeness > 70 && vibes.energy > 70 && vibes.clout > 70) {
+                resultKey = 'high-woke';
+            } else if (vibes.energy > 70) {
+                resultKey = 'high-energy';
+            } else if (vibes.clout > 70) {
+                resultKey = 'high-clout';
+            } else if (vibes.wokeness < 30 && vibes.energy < 30 && vibes.clout < 30) {
+                resultKey = 'low-everything';
+            } else {
+                resultKey = 'mid-everything';
+            }
+            const result = vibeResults[resultKey];
+            document.getElementById('resultsTitle').innerText = result.title;
+            document.getElementById('resultsSubtitle').innerText = result.subtitle;
+            document.getElementById('resultsDescription').innerText = result.description;
+        }
+        
+        document.getElementById('restartBtn').onclick = startGame;
+        
+        // Sound toggle
+        const soundToggle = document.getElementById('soundToggle');
+        soundToggle.onclick = () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.classList.toggle('active', soundEnabled);
+            document.getElementById('soundIndicator').classList.toggle('show', soundEnabled);
+            setTimeout(() => {
+                document.getElementById('soundIndicator').classList.remove('show');
+            }, 1500);
+        };
+        
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.onclick = () => {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark', darkMode);
+            darkModeToggle.classList.toggle('active', darkMode);
+        };
+        
+        // Easter egg
+        const easterEgg = document.getElementById('easterEgg');
+        document.addEventListener('keydown', (e) => {
+            konamiInput.push(e.key);
+            if (konamiInput.length > konamiCode.length) {
+                konamiInput.shift();
+            }
+            if (JSON.stringify(konamiInput) === JSON.stringify(konamiCode)) {
+                easterEgg.classList.add('show');
+                setTimeout(() => {
+                    easterEgg.classList.remove('show');
+                }, 3000);
+            }
+        });
+        
+        // Meme generation
+        const memeBtn = document.getElementById('memeBtn');
+        const memeText = document.getElementById('memeText');
+        memeBtn.onclick = () => {
+            const randomIndex = Math.floor(Math.random() * memePhrasesGenZ.length);
+            const selectedMeme = memePhrasesGenZ[randomIndex];
+            memeText.innerText = selectedMeme;
+        };
+        
+        // Init
+        startGame();
+    </script>
+</body>
+</html>
